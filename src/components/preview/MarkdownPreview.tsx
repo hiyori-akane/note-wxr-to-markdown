@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import type { ConvertedArticle } from '../../types';
-import { getFullMarkdown } from '../../lib/markdownConverter';
+import { getFullMarkdown, getMarkdownWithoutFrontmatter } from '../../lib/markdownConverter';
 import { Button } from '../common/Button';
 import { downloadSingleMarkdown } from '../../lib/zipDownloader';
 import { marked } from 'marked';
@@ -15,16 +15,17 @@ type PreviewMode = 'source' | 'rendered';
 
 export function MarkdownPreview({ article, onClose }: MarkdownPreviewProps) {
   const fullMarkdown = getFullMarkdown(article);
+  const markdownWithoutFrontmatter = getMarkdownWithoutFrontmatter(article);
   const [mode, setMode] = useState<PreviewMode>('source');
 
   // Memoize rendered and sanitized HTML to avoid re-computation on every render
   const renderedHtml = useMemo(() => {
     if (mode === 'rendered') {
-      const rawHtml = marked.parse(fullMarkdown) as string;
+      const rawHtml = marked.parse(markdownWithoutFrontmatter) as string;
       return DOMPurify.sanitize(rawHtml);
     }
     return '';
-  }, [mode, fullMarkdown]);
+  }, [mode, markdownWithoutFrontmatter]);
 
   useEffect(() => {
     // Prevent body scroll when modal is open
@@ -122,10 +123,26 @@ export function MarkdownPreview({ article, onClose }: MarkdownPreviewProps) {
               {fullMarkdown}
             </pre>
           ) : (
-            <div
-              className="prose prose-slate dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:text-gray-800 dark:prose-pre:text-gray-200"
-              dangerouslySetInnerHTML={{ __html: renderedHtml }}
-            />
+            <div>
+              {article.eyecatch && (
+                <div className="mb-6">
+                  <img 
+                    src={article.eyecatch} 
+                    alt={article.title}
+                    className="w-full h-auto rounded-lg"
+                    onError={(e) => {
+                      // Hide the image if it fails to load
+                      e.currentTarget.style.display = 'none';
+                      console.warn(`Failed to load eyecatch image: ${article.eyecatch}`);
+                    }}
+                  />
+                </div>
+              )}
+              <div
+                className="prose prose-slate dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:text-gray-800 dark:prose-pre:text-gray-200"
+                dangerouslySetInnerHTML={{ __html: renderedHtml }}
+              />
+            </div>
           )}
         </div>
       </div>

@@ -8,10 +8,10 @@ export function useArticles() {
   const [selectedArticles, setSelectedArticles] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
-  const loadArticles = (xmlContent: string) => {
+  const loadArticles = async (xmlContent: string) => {
     try {
       setError(null);
-      const parsedArticles = parseWXR(xmlContent);
+      const parsedArticles = await parseWXR(xmlContent);
       const convertedArticles = parsedArticles.map((article) => convertToMarkdown(article));
       setArticles(convertedArticles);
       setSelectedArticles(new Set());

@@ -8,6 +8,7 @@ export interface Article {
   status: 'publish' | 'draft';
   content: string; // HTML content
   description: string;
+  eyecatch?: string; // Top image URL from Note API
 }
 
 export interface ConvertedArticle extends Article {

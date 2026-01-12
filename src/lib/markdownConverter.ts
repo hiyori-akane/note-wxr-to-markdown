@@ -81,7 +81,7 @@ export function convertToMarkdown(article: Article): ConvertedArticle {
 function generateFrontmatter(article: Article): string {
   const draft = article.status === 'draft';
   
-  return `---
+  let frontmatter = `---
 title: "${escapeYaml(article.title)}"
 pubDate: "${article.pubDate}"
 modifiedDate: "${article.modifiedDate}"
@@ -90,8 +90,16 @@ link: "${article.link}"
 creator: "${escapeYaml(article.creator)}"
 status: "${article.status}"
 draft: ${draft}
-description: "${escapeYaml(article.description)}"
----`;
+description: "${escapeYaml(article.description)}"`;
+
+  // Add eyecatch if available
+  if (article.eyecatch) {
+    frontmatter += `\neyecatch: "${escapeYaml(article.eyecatch)}"`;
+  }
+
+  frontmatter += '\n---';
+  
+  return frontmatter;
 }
 
 function generateFilename(article: Article): string {
@@ -116,4 +124,8 @@ function escapeYaml(str: string): string {
 
 export function getFullMarkdown(article: ConvertedArticle): string {
   return `${article.frontmatter}\n\n${article.markdown}`;
+}
+
+export function getMarkdownWithoutFrontmatter(article: ConvertedArticle): string {
+  return article.markdown;
 }
