@@ -1,5 +1,5 @@
 import TurndownService from 'turndown';
-import type { Article, ConvertedArticle } from '../types';
+import type { Article, ConvertedArticle, PathMode } from '../types';
 
 // Image conversion constants
 const NOTE_IMAGE_BASE_URL = 'https://assets.st-note.com/img';
@@ -39,27 +39,31 @@ turndownService.addRule('codeBlock', {
   },
 });
 
-export function convertToMarkdown(article: Article): ConvertedArticle {
-  // Convert relative image URLs to absolute
-  let processedContent = article.content.replace(
-    /src="\/\//g,
-    'src="https://'
-  );
+// Helper function to convert protocol-relative URLs to https
+function convertProtocolRelativeUrls(content: string): string {
+  return content.replace(/src="\/\//g, 'src="https://');
+}
+
+export function convertToMarkdown(article: Article, pathMode: PathMode = 'relative'): ConvertedArticle {
+  let processedContent = convertProtocolRelativeUrls(article.content);
   
-  // Convert /assets/ image URLs to Note's direct image links
-  processedContent = processedContent.replace(
-    /src="\/assets\/[^_]+_([^"]+)"/g,
-    (_match, imageFile) => {
-      // imageFile contains something like "1767620412-ZvgjStEu8PTrA9eWaYbRc5dQ.png"
-      const queryParams = `width=${NOTE_IMAGE_WIDTH}&height=${NOTE_IMAGE_HEIGHT}&fit=${NOTE_IMAGE_FIT}&quality=${NOTE_IMAGE_QUALITY}`;
-      return `src="${NOTE_IMAGE_BASE_URL}/${imageFile}?${queryParams}"`;
-    }
-  );
-  
-  processedContent = processedContent.replace(
-    /src="\/([^"]+)"/g,
-    'src="https://note.com/$1"'
-  );
+  if (pathMode === 'absolute') {
+    // Convert /assets/ image URLs to Note's direct image links
+    processedContent = processedContent.replace(
+      /src="\/assets\/[^_]+_([^"]+)"/g,
+      (_match, imageFile) => {
+        // imageFile contains something like "1767620412-ZvgjStEu8PTrA9eWaYbRc5dQ.png"
+        const queryParams = `width=${NOTE_IMAGE_WIDTH}&height=${NOTE_IMAGE_HEIGHT}&fit=${NOTE_IMAGE_FIT}&quality=${NOTE_IMAGE_QUALITY}`;
+        return `src="${NOTE_IMAGE_BASE_URL}/${imageFile}?${queryParams}"`;
+      }
+    );
+    
+    processedContent = processedContent.replace(
+      /src="\/([^"]+)"/g,
+      'src="https://note.com/$1"'
+    );
+  }
+  // For relative mode: paths are already kept as-is after protocol-relative conversion
 
   // Convert HTML to Markdown
   const markdown = turndownService.turndown(processedContent);
@@ -75,13 +79,14 @@ export function convertToMarkdown(article: Article): ConvertedArticle {
     markdown,
     frontmatter,
     filename,
+    pathMode,
   };
 }
 
 function generateFrontmatter(article: Article): string {
   const draft = article.status === 'draft';
   
-  let frontmatter = `---
+  return `---
 title: "${escapeYaml(article.title)}"
 pubDate: "${article.pubDate}"
 modifiedDate: "${article.modifiedDate}"
@@ -90,16 +95,8 @@ link: "${article.link}"
 creator: "${escapeYaml(article.creator)}"
 status: "${article.status}"
 draft: ${draft}
-description: "${escapeYaml(article.description)}"`;
-
-  // Add eyecatch if available
-  if (article.eyecatch) {
-    frontmatter += `\neyecatch: "${escapeYaml(article.eyecatch)}"`;
-  }
-
-  frontmatter += '\n---';
-  
-  return frontmatter;
+description: "${escapeYaml(article.description)}"
+---`;
 }
 
 function generateFilename(article: Article): string {

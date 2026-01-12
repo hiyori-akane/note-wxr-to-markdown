@@ -123,26 +123,10 @@ export function MarkdownPreview({ article, onClose }: MarkdownPreviewProps) {
               {fullMarkdown}
             </pre>
           ) : (
-            <div>
-              {article.eyecatch && (
-                <div className="mb-6">
-                  <img 
-                    src={article.eyecatch} 
-                    alt={article.title}
-                    className="w-full h-auto rounded-lg"
-                    onError={(e) => {
-                      // Hide the image if it fails to load
-                      e.currentTarget.style.display = 'none';
-                      console.warn(`Failed to load eyecatch image: ${article.eyecatch}`);
-                    }}
-                  />
-                </div>
-              )}
-              <div
-                className="prose prose-slate dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:text-gray-800 dark:prose-pre:text-gray-200"
-                dangerouslySetInnerHTML={{ __html: renderedHtml }}
-              />
-            </div>
+            <div
+              className="prose prose-slate dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:text-gray-800 dark:prose-pre:text-gray-200"
+              dangerouslySetInnerHTML={{ __html: renderedHtml }}
+            />
           )}
         </div>
       </div>

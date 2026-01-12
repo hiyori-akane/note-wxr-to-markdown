@@ -6,6 +6,7 @@ import { Footer } from './components/layout/Footer';
 import { FileUploader } from './components/upload/FileUploader';
 import { ArticleList } from './components/articles/ArticleList';
 import { Alert } from './components/common/Alert';
+import { PathModeDialog } from './components/common/PathModeDialog';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
@@ -13,7 +14,10 @@ function App() {
     articles,
     selectedArticles,
     error,
+    showPathModeDialog,
     loadArticles,
+    selectPathMode,
+    closePathModeDialog,
     toggleArticle,
     toggleAll,
   } = useArticles();
@@ -75,6 +79,13 @@ function App() {
 
         <Footer />
       </div>
+
+      {showPathModeDialog && (
+        <PathModeDialog
+          onSelect={selectPathMode}
+          onClose={closePathModeDialog}
+        />
+      )}
     </>
   );
 }

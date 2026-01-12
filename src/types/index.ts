@@ -1,3 +1,5 @@
+export type PathMode = 'relative' | 'absolute';
+
 export interface Article {
   title: string;
   pubDate: string; // ISO 8601 format
@@ -8,11 +10,11 @@ export interface Article {
   status: 'publish' | 'draft';
   content: string; // HTML content
   description: string;
-  eyecatch?: string; // Top image URL from Note API
 }
 
 export interface ConvertedArticle extends Article {
   markdown: string;
   filename: string;
   frontmatter: string;
+  pathMode: PathMode;
 }
